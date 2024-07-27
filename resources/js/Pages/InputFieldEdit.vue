@@ -20,16 +20,19 @@
                             <span class="input-group-text" id="inputGroup-sizing-sm">Name</span>
                             <input v-model="formData.name" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                                <span class="text-danger">{{ errors.name }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Label</span>
                             <input v-model="formData.label" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                                <span class="text-danger">{{ errors.label }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Placeholder</span>
                             <input v-model="formData.placeholder" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                                <span class="text-danger">{{ errors.placeholder }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Required</span>
@@ -46,65 +49,132 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+
+import { defineComponent, ref, reactive } from 'vue';
+import { Inertia } from '@inertiajs/inertia';
+import axios from 'axios';
+// Import Toastr CSS
+import 'toastr/build/toastr.min.css';
+// Import Toastr JS
+import toastr from 'toastr';
 // Import the child component
 import AppLayout from './AppLayout.vue';
-import { Inertia } from '@inertiajs/inertia';
+
+// Define interfaces for the form data and inputs
+export interface FormData {
+    type: string;
+    name: string | null;
+    label: string | null;
+    placeholder: string | null;
+    required: string;
+}
+
+export interface FormErrors {
+    name?: string;
+    label?: string;
+    placeholder?: string;
+}
 
 export default {
-    name: 'Welcome',
+    name: 'InputFieldEdit',
     components: {
         AppLayout,
     },
     props: {
-        field: Array
+        field: Object
     },
-    data() {
-        return {
-            showList: true,
-            formData: {
-                type: 'Text',
-                name: null,
-                label: null,
-                placeholder: null,
-                required: '1'
-            }
-        }
-    },
-    methods: {
-        AddNewField() {
-            this.showList = !this.showList;
-        },
-        submit() {
-            var _this = this;
-            if(this._checkInput()){
-                Inertia.post('/input-field/'+this.field.id , _this.formData);
-            }
-        },
-        _checkInput(){
-            var flag = true;
-            if (!this.formData.name) {
-                flag = false;
-            }
-            if (!this.formData.label) {
-                flag = false;
-            }
-            if (!this.formData.placeholder) {
-                flag = false;
-            }
-            return flag;
-        }
-    },
+    setup(props, { emit }) {
+        const showList = ref(true);
+        const formData = reactive<FormData>({
+            type: props.field.type,
+            name: props.field.name,
+            label: props.field.label,
+            placeholder: props.field.placeholder,
+            required: props.field.required,
+        });
+        const errors = reactive<FormErrors>({});
 
-    mounted() {
-        this.formData = {
-            type: this.field.type,
-            name: this.field.name,
-            label: this.field.label,
-            placeholder: this.field.placeholder,
-            required: this.field.required
-        }
+        const validateForm = (): boolean => {
+            let isValid = true;
+            errors.name = formData.name ? '' : 'Name is required';
+            errors.label = formData.label ? '' : 'Label is required';
+            errors.placeholder = formData.placeholder ? '' : 'Placeholder is required';
+
+            if (!formData.name || !formData.label || !formData.placeholder) {
+                isValid = false;
+            }
+
+            return isValid;
+        };
+
+        const submit = () => {
+            if (validateForm()) {
+                axios.post('/input-field/'+props.field.id , formData)
+                    .then((res) => {
+                        emit('update:inputs', res.data.inputs);
+                        toastr.success(res.data.msg, 'Success')
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/input-field', formData);
+            }
+        };
+
+        return {
+            showList,
+            formData,
+            errors,
+            submit,
+        };
     },
+    // data() {
+    //     return {
+    //         showList: true,
+    //         formData: {
+    //             type: 'Text',
+    //             name: null,
+    //             label: null,
+    //             placeholder: null,
+    //             required: '1'
+    //         }
+    //     }
+    // },
+    // methods: {
+    //     AddNewField() {
+    //         this.showList = !this.showList;
+    //     },
+    //     submit() {
+    //         var _this = this;
+    //         if(this._checkInput()){
+    //             Inertia.post('/input-field/'+this.field.id , _this.formData);
+    //         }
+    //     },
+    //     _checkInput(){
+    //         var flag = true;
+    //         if (!this.formData.name) {
+    //             flag = false;
+    //         }
+    //         if (!this.formData.label) {
+    //             flag = false;
+    //         }
+    //         if (!this.formData.placeholder) {
+    //             flag = false;
+    //         }
+    //         return flag;
+    //     }
+    // },
+
+    // mounted() {
+    //     this.formData = {
+    //         type: this.field.type,
+    //         name: this.field.name,
+    //         label: this.field.label,
+    //         placeholder: this.field.placeholder,
+    //         required: this.field.required
+    //     }
+    // },
 };
 </script>
 

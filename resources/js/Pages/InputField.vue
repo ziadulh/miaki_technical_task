@@ -5,10 +5,10 @@
             <template v-slot:main_content>
                 <div class="row">
                     <div v-if="showList">
-                        <button class="float-end m-2 btn btn-primary" @click="AddNewField()">List</button>
+                        <button class="float-end m-2 btn btn-primary" @click="addNewField()">List</button>
                     </div>
                     <div v-if="!showList">
-                        <button class="float-end m-2 btn btn-primary" @click="AddNewField()">Add New</button>
+                        <button class="float-end m-2 btn btn-primary" @click="addNewField()">Add New</button>
                     </div>
                 </div>
                 <div class="row">
@@ -17,27 +17,32 @@
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Type</span>
                             <select class="form-select" id="inputGroupSelect02" v-model="formData.type">
-                                <option value="Text">Text</option>
-                                <option value="Select">Select</option>
-                                <option value="CheckBox">CheckBox</option>
-                                <option value="TextArea">TextArea</option>
-                                <option value="Radio">Radio</option>
+                                <option value="text">Text</option>
+                                <option value="email">Text</option>
+                                <option value="password">Text</option>
+                                <option value="select">Select</option>
+                                <option value="checkbox">CheckBox</option>
+                                <option value="radio">Radio</option>
+                                <option value="textarea">TextArea</option>
                             </select>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Name</span>
                             <input v-model="formData.name" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                            <span class="text-danger">{{ errors.name }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Label</span>
                             <input v-model="formData.label" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                            <span class="text-danger">{{ errors.label }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Placeholder</span>
                             <input v-model="formData.placeholder" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                            <span class="text-danger">{{ errors.placeholder }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Required</span>
@@ -67,8 +72,8 @@
                                 <td>{{ input.placeholder }}</td>
                                 <td>{{ input.required ? 'true' : 'false' }}</td>
                                 <td>
-                                    <Link :href="'/input-field/'+input.id" class="btn btn-info" >Edit</Link>
-                                    <button class="btn btn-danger mx-2" @click="DeleteField(input.id)">Delete</button>
+                                    <Link :href="'/input-field/' + input.id" class="btn btn-info">Edit</Link>
+                                    <button class="btn btn-danger mx-2" @click="deleteField(input.id)">Delete</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -79,63 +84,150 @@
     </div>
 </template>
 
-<script>
-// Import the child component
-import AppLayout from './AppLayout.vue';
+<script lang="ts">
+
+import { defineComponent, ref, reactive } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
 import { Link } from '@inertiajs/vue3'
+import axios from 'axios';
+// Import Toastr CSS
+import 'toastr/build/toastr.min.css';
+// Import Toastr JS
+import toastr from 'toastr';
+// Import the child component
+import AppLayout from './AppLayout.vue';
+
+// Define interfaces for the form data and inputs
+export interface FormData {
+    type: string;
+    name: string | null;
+    label: string | null;
+    placeholder: string | null;
+    required: string;
+}
+
+export interface FormErrors {
+    name?: string;
+    label?: string;
+    placeholder?: string;
+}
 
 export default {
-    name: 'Welcome',
+    name: 'InputField',
     components: {
         AppLayout, Link
     },
     props: {
-        inputs: Array
+        inputs: Array,
     },
-    data() {
+    setup(props, { emit }) {
+        const showList = ref(true);
+        const formData = reactive<FormData>({
+            type: 'text',
+            name: null,
+            label: null,
+            placeholder: null,
+            required: '1',
+        });
+        const errors = reactive<FormErrors>({});
+
+        const validateForm = (): boolean => {
+            let isValid = true;
+            errors.name = formData.name ? '' : 'Name is required';
+            errors.label = formData.label ? '' : 'Label is required';
+            errors.placeholder = formData.placeholder ? '' : 'Placeholder is required';
+
+            if (!formData.name || !formData.label || !formData.placeholder) {
+                isValid = false;
+            }
+
+            return isValid;
+        };
+
+        const addNewField = () => {
+            showList.value = !showList.value;
+        };
+
+        const submit = () => {
+            if (validateForm()) {
+                axios.post('/input-field', formData)
+                    .then((res) => {
+                        emit('update:inputs', res.data.inputs);
+                        toastr.success(res.data.msg, 'Success')
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/input-field', formData);
+            }
+        };
+
+        const deleteField = (id: number) => {
+            if (confirm('Are you sure!')) {
+                axios.delete(`/input-field/${id}`)
+                    .then((res) => {
+                        emit('update:inputs', res.data.inputs);
+                        toastr.success(res.data.msg, 'Success')
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.delete(`/input-field/${id}`);
+            }
+        };
+
         return {
-            showList: true,
-            formData: {
-                type: 'Text',
-                name: null,
-                label: null,
-                placeholder: null,
-                required: '1'
-            }
-        }
+            showList,
+            formData,
+            errors,
+            addNewField,
+            submit,
+            deleteField,
+        };
     },
-    methods: {
-        AddNewField() {
-            this.showList = !this.showList;
-        },
-        submit() {
-            var _this = this;
-            if(this._checkInput()){
-                Inertia.post('/input-field', _this.formData);
-            }
-        },
+    // data() {
+    //     return {
+    //         showList: true,
+    //         formData: {
+    //             type: 'Text',
+    //             name: null,
+    //             label: null,
+    //             placeholder: null,
+    //             required: '1'
+    //         }
+    //     }
+    // },
+    // methods: {
+    //     AddNewField() {
+    //         this.showList = !this.showList;
+    //     },
+    //     submit() {
+    //         var _this = this;
+    //         if (this._checkInput()) {
+    //             Inertia.post('/input-field', _this.formData);
+    //         }
+    //     },
 
-        DeleteField(id) {
-            if(confirm('Are you sure! ')){
-                Inertia.delete('/input-field/'+id);
-            }
-        },
+    //     DeleteField(id) {
+    //         if (confirm('Are you sure! ')) {
+    //             Inertia.delete('/input-field/' + id);
+    //         }
+    //     },
 
-        _checkInput(){
-            var flag = true;
-            if (!this.formData.name) {
-                flag = false;
-            }
-            if (!this.formData.label) {
-                flag = false;
-            }
-            if (!this.formData.placeholder) {
-                flag = false;
-            }
-            return flag;
-        }
-    },
+    //     _checkInput() {
+    //         var flag = true;
+    //         if (!this.formData.name) {
+    //             flag = false;
+    //         }
+    //         if (!this.formData.label) {
+    //             flag = false;
+    //         }
+    //         if (!this.formData.placeholder) {
+    //             flag = false;
+    //         }
+    //         return flag;
+    //     }
+    // },
 };
 </script>
 

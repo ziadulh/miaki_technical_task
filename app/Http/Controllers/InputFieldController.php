@@ -34,7 +34,8 @@ class InputFieldController extends Controller
         $field->required = $req->required;
         $field->save();
 
-        return to_route('field.index');
+        $inputs = InputField::get();
+        return response()->json(['status' => true, 'msg' => 'success', 'inputs' => $inputs, 200]);
     }
 
     function show($id) {
@@ -53,11 +54,13 @@ class InputFieldController extends Controller
         $field->required = $req->required;
         $field->save();
 
-        return to_route('field.index');
+        $inputs = InputField::get();
+        return response()->json(['status' => true, 'msg' => 'success', 'inputs' => $inputs, 200]);
     }
 
     function destroy($id) {
         InputField::where('id', $id)->delete();
-        return to_route('field.index');
+        $inputs = InputField::get();
+        return response()->json(['status' => true, 'msg' => 'success', 'inputs' => $inputs, 200]);
     }
 }
