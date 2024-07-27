@@ -3,32 +3,32 @@
     <div>
         <AppLayout>
             <template v-slot:main_content>
-                <div class="row" v-if="showList">
+                <div class="row" v-if="initData.showList">
                     <div class="col-md-1">
 
                     </div>
                     <div class="col-md-3">
-                        <input type="text" name="title" v-model="formData.title" placeholder="Title">
+                        <input type="text" name="title" v-model="initData.formData.title" placeholder="Title">
                     </div>
                     <div class="col-md-3">
-                        <input type="text" name="method" v-model="formData.method" placeholder="Method">
+                        <input type="text" name="method" v-model="initData.formData.method" placeholder="Method">
                     </div>
                     <div class="col-md-3">
-                        <input type="text" name="action" v-model="formData.action" placeholder="Action">
+                        <input type="text" name="action" v-model="initData.formData.action" placeholder="Action">
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary" @click="UpdateFormData(this.form.id)">Submit</button>
+                        <button class="btn btn-primary" @click="UpdateFormData(form.id)">Submit</button>
                     </div>
                 </div>
-                <div class="containerTemp" v-if="showList">
+                <div class="containerTemp" v-if="initData.showList">
                     <div class="left-panel" @dragover.prevent @drop="dropInLeftPanel">
-                        <div v-for="(field, index) in fields" :key="field.id" class="draggable-item" draggable="true"
+                        <div v-for="(field, index) in initData.fields" :key="field.id" class="draggable-item" draggable="true"
                             @dragstart="dragStart(field, 'left', index)">
                             {{ field.label }}
                         </div>
                     </div>
                     <div class="right-panel" @dragover.prevent @drop="dropInRightPanel">
-                        <div v-for="(field, index) in droppedFields" :key="field.id" class="draggable-item"
+                        <div v-for="(field, index) in initData.droppedFields" :key="field.id" class="draggable-item"
                             draggable="true" @dragstart="onDragStart(index)" @dragover.prevent
                             @dragenter="onDragEnter(index)" @dragend="onDragEnd">
                             <FieldType :fieldData="field" />
@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <table class="table table-sm" v-if="!showList">
+                    <table class="table table-sm" v-if="!initData.showList">
                         <thead>
                             <tr>
                                 <th scope="col">Title</th>
@@ -46,7 +46,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="form in forms">
+                            <tr v-for="form in props.forms">
                                 <td scope="row">{{ form.title }}</td>
                                 <td>{{ form.method }}</td>
                                 <td>{{ form.action }}</td>
@@ -63,13 +63,36 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 // Import the child component
+import { defineComponent, ref, reactive } from 'vue';
 import AppLayout from './AppLayout.vue';
 import FieldType from './FieldType.vue'
 import { Inertia } from '@inertiajs/inertia';
 
 import { Link } from '@inertiajs/vue3'
+import axios from 'axios';
+// Import Toastr CSS
+import 'toastr/build/toastr.min.css';
+// Import Toastr JS
+import toastr from 'toastr';
+
+// Define interfaces for the form data and inputs
+export interface initData {
+    showList: boolean,
+    fields: Array<Object>,
+    droppedFields: Array<Object>,
+    draggedField: Object,
+    dragSource: String | null,
+    dragStartIndex: Number | null,
+    dragIndex: Number | null,
+    formData: {
+        title: String,
+        method: String,
+        action: String,
+        fields: Array<Object> | String
+    }
+}
 
 export default {
     name: 'Welcome',
@@ -78,87 +101,31 @@ export default {
     },
     props: {
         inputs: Array,
-        form: Array
+        form: Object
     },
-    data() {
-        return {
+    setup(props) {
+
+        const initData = reactive<initData>({
             showList: true,
             fields: [],
             droppedFields: [],
-            draggedField: null,
+            draggedField: {},
             dragSource: null,
-            dragStartIndex: null,
-            dragIndex: null,
+            dragStartIndex: 0,
+            dragIndex: 0,
             formData: {
-                title: null,
-                method: null,
-                action: null,
+                title: '',
+                method: '',
+                action: '',
                 fields: []
             }
-        }
-    },
-    methods: {
-        dragStart(field, source, index) {
-            this.draggedField = field;
-            this.dragSource = source;
-            this.dragStartIndex = index;
-        },
-        dropInRightPanel() {
-            if (this.dragSource === 'left') {
-                this.droppedFields.push(this.draggedField);
-                this.fields.splice(this.dragStartIndex, 1);
-            } else if (this.dragSource === 'right') {
-                const draggedItem = this.droppedFields.splice(this.dragStartIndex, 1)[0];
-                this.droppedFields.push(draggedItem);
-            }
-            this.resetDrag();
-        },
-        onDragStart(index) {
-            this.dragIndex = index;
-        },
-        onDragEnter(index) {
-            if (index !== this.dragIndex) {
-                const temp = this.droppedFields.splice(this.dragIndex, 1)[0];
-                this.droppedFields.splice(index, 0, temp);
-                this.dragIndex = index;
-            }
-        },
-        onDragEnd() {
-            this.dragIndex = null;
-        },
-        resetDrag() {
-            this.draggedField = null;
-            this.dragSource = null;
-            this.dragStartIndex = null;
-        },
+        });
 
-        AddNewField() {
-            this.showList = !this.showList;
-        },
-
-        UpdateFormData(id) {
-            var _this = this;
-            _this.formData.fields = JSON.stringify(_this.droppedFields);
-            if (_this._checkInput()) {
-                Inertia.post('/form-builder/' + id + '/update', _this.formData);
-            }
-        },
-        _checkInput() {
-            var flag = true;
-            return flag;
-        },
-
-        ViewForm() {
-
-        }
-    },
-
-    mounted() {
         var left_array = [];
         var right_array = [];
 
-        (JSON.parse(this.form.fields)).forEach(el => {
-            this.inputs.forEach(iel => {
+        (JSON.parse(props.form.fields)).forEach(el => {
+            props.inputs.forEach(iel => {
                 if (el.id == iel.id) {
                     right_array.push({
                         id: el.id,
@@ -172,8 +139,8 @@ export default {
             })
         });
 
-        (JSON.parse(this.form.fields)).forEach(el => {
-            this.inputs.forEach(iel => {
+        (JSON.parse(props.form.fields)).forEach(el => {
+            props.inputs.forEach(iel => {
                 if (el.id != iel.id) {
                     left_array.push({
                         id: iel.id,
@@ -187,16 +154,108 @@ export default {
             })
         });
 
-        this.fields = left_array;
-        this.droppedFields = right_array;
+        initData.fields = left_array;
+        initData.droppedFields = right_array;
 
-        this.formData = {
-            title: this.form.title,
-            method: this.form.method,
-            action: this.form.action,
-            fields: this.droppedFields
+        initData.formData = {
+            title: props.form.title,
+            method: props.form.method,
+            action: props.form.action,
+            fields: props.droppedFields
         }
-    },
+
+        const dragStart = (field: Object, source: String, index: Number) => {
+            initData.draggedField = field;
+            initData.dragSource = source;
+            initData.dragStartIndex = null;
+
+        };
+
+        const dropInRightPanel = () => {
+            if (initData.dragSource === 'left') {
+                initData.droppedFields.push(initData.draggedField);
+                initData.fields.splice(Number(initData.dragStartIndex), 1);
+            } else if (initData.dragSource === 'right') {
+                const draggedItem = initData.droppedFields.splice(Number(initData.dragStartIndex), 1)[0];
+                initData.droppedFields.push(draggedItem);
+            }
+            resetDrag();
+        };
+
+        const dropInLeftPanel = () => {
+            if (initData.dragSource === 'right') {
+                initData.fields.push(initData.draggedField);
+                initData.droppedFields.splice(Number(initData.dragStartIndex), 1);
+            }
+            resetDrag();
+        };
+
+        const onDragStart = (index: Number) => {
+            initData.dragIndex = index;
+        };
+
+        const onDragEnter = (index: Number) => {
+            if (index !== initData.dragIndex) {
+                const temp = initData.droppedFields.splice(Number(initData.dragIndex), 1)[0];
+                initData.droppedFields.splice(Number(index), 0, temp);
+                initData.dragIndex = index;
+            }
+        };
+
+        const onDragEnd = () => {
+            initData.dragIndex = null;
+        };
+
+        const resetDrag = () => {
+            initData.draggedField = {};
+            initData.dragSource = null;
+            initData.dragStartIndex = null;
+        };
+
+        const AddNewField = () => {
+            initData.showList = !initData.showList;
+        };
+
+        const UpdateFormData = (id: Number) => {
+            var _this = initData;
+            initData.formData.fields = JSON.stringify(_this.droppedFields);
+            if (checkInput()) {
+                axios.post('/form-builder/' + id + '/update', initData.formData)
+                    .then((res) => {
+                        toastr.success(res.data.msg, 'Success')
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/form-builder/' + id + '/update', _this.formData);
+            }
+        }
+        const checkInput = () => {
+            var flag = true;
+            return flag;
+        };
+
+        const DeleteForm = (id: Number) => {
+            if (confirm('Are you sure')) {
+                Inertia.post('/form-builder/' + id + '/destroy');
+            }
+        };
+
+        return {
+            initData,
+            dragStart,
+            dropInRightPanel,
+            dropInLeftPanel,
+            onDragStart,
+            onDragEnter,
+            onDragEnd,
+            resetDrag,
+            AddNewField,
+            UpdateFormData,
+            checkInput,
+            DeleteForm
+        };
+    }
 };
 </script>
 
