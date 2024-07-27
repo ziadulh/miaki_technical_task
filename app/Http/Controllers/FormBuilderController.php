@@ -23,7 +23,9 @@ class FormBuilderController extends Controller
         $form_builder->fields = $req->fields;
         $form_builder->save();
 
-        return to_route('form_builder.list');
+        return response()->json(['status' => true, 'msg' => 'success', 200]);
+
+        // return to_route('form_builder.list');
     }
 
     function view($id) {
