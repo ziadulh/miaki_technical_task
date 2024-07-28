@@ -22,8 +22,8 @@
                 </div>
                 <div class="containerTemp" v-if="initData.showList">
                     <div class="left-panel" @dragover.prevent @drop="dropInLeftPanel">
-                        <div v-for="(field, index) in initData.fields" :key="field.id" class="draggable-item" draggable="true"
-                            @dragstart="dragStart(field, 'left', index)">
+                        <div v-for="(field, index) in initData.fields" :key="field.id" class="draggable-item"
+                            draggable="true" @dragstart="dragStart(field, 'left', index)">
                             {{ field.label }}
                         </div>
                     </div>
@@ -146,20 +146,33 @@ export default {
             })
         });
 
-        (JSON.parse(props.form.fields)).forEach(el => {
-            props.inputs.forEach(iel => {
-                if (el.id != iel.id) {
-                    left_array.push({
-                        id: iel.id,
-                        name: iel.name,
-                        type: iel.type,
-                        label: iel.label,
-                        placeholder: iel.placeholder,
-                        required: iel.required
-                    });
-                }
-            })
-        });
+        // (JSON.parse(props.form.fields)).forEach(el => {
+        //     props.inputs.forEach(iel => {
+        //         if (el.id != iel.id) {
+        //             left_array.push({
+        //                 id: iel.id,
+        //                 name: iel.name,
+        //                 type: iel.type,
+        //                 label: iel.label,
+        //                 placeholder: iel.placeholder,
+        //                 required: iel.required
+        //             });
+        //         }
+        //     })
+        // });
+
+        const removeObjectsById = (arrayA: Array<Object>, arrayB: Array<Object>) => {
+            // Create a set of IDs from array B for efficient lookup
+            const idSetB = new Set(arrayB.map(obj => obj.id));
+
+            // Filter array A to keep objects whose IDs are not in the set
+            const newArray = arrayA.filter(obj => !idSetB.has(obj.id));
+
+            return newArray;
+        }
+
+        left_array = removeObjectsById(props.inputs, (JSON.parse(props.form.fields)));
+
 
         const errors = reactive<FormErrors>({});
 
@@ -259,8 +272,8 @@ export default {
                 toastr.error(errors.action, 'Error')
             }
             console.log(initData.droppedFields.length);
-            
-            if ( initData.droppedFields.length <= 0) {
+
+            if (initData.droppedFields.length <= 0) {
                 isValid = false;
                 toastr.error('Add at least one filed', 'Error')
             }

@@ -4,10 +4,10 @@
         <AppLayout>
             <template v-slot:main_content>
                 <div class="row">
-                    <div v-if="showList">
+                    <div v-if="initData.showList">
                         <button class="float-end m-2 btn btn-primary" @click="AddNewField()">List</button>
                     </div>
-                    <div v-if="!showList">
+                    <div v-if="!initData.showList">
                         <button class="float-end m-2 btn btn-primary" @click="AddNewField()">Add New</button>
                     </div>
                 </div>
