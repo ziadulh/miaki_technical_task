@@ -3,7 +3,7 @@
   <div>
     <div class="container">
       <div class="row">
-        <nav class="navbar navbar-expand-lg bg-info">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
           <div class="container-fluid">
             <a class="navbar-brand" href="#">Navbar</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -46,5 +46,15 @@ export default {
 </script>
 
 <style scoped>
-/* Add your styles here */
+li {
+    list-style: none;
+    margin: 5px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: move;
+}
+nav {
+  background-color: #152021;
+}
 </style>

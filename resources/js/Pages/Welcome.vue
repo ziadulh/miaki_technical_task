@@ -3,7 +3,7 @@
     <div>
         <AppLayout>
             <template v-slot:main_content>
-                <h2>Custom Header Content</h2>
+                <h2>Welcome</h2>
             </template>
         </AppLayout>
     </div>
