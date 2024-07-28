@@ -94,6 +94,13 @@ export interface initData {
     }
 }
 
+export interface FormErrors {
+    title?: string;
+    method?: string;
+    action?: String,
+    fields?: String
+}
+
 export default {
     name: 'Welcome',
     components: {
@@ -153,6 +160,8 @@ export default {
                 }
             })
         });
+
+        const errors = reactive<FormErrors>({});
 
         initData.fields = left_array;
         initData.droppedFields = right_array;
@@ -231,8 +240,31 @@ export default {
             }
         }
         const checkInput = () => {
-            var flag = true;
-            return flag;
+            let isValid = true;
+            errors.title = initData.formData.title ? '' : 'Title is required';
+            errors.method = initData.formData.method ? '' : 'Method is required';
+            errors.action = initData.formData.action ? '' : 'Action is required';
+            errors.fields = initData.droppedFields.length <= 0 ? '' : 'Field is required';
+
+            if (!initData.formData.title) {
+                isValid = false;
+                toastr.error(errors.title, 'Error')
+            }
+            if (!initData.formData.method) {
+                isValid = false;
+                toastr.error(errors.method, 'Error')
+            }
+            if (!initData.formData.action) {
+                isValid = false;
+                toastr.error(errors.action, 'Error')
+            }
+            console.log(initData.droppedFields.length);
+            
+            if ( initData.droppedFields.length <= 0) {
+                isValid = false;
+                toastr.error('Add at least one filed', 'Error')
+            }
+            return isValid;
         };
 
         const DeleteForm = (id: Number) => {

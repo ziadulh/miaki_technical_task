@@ -1,6 +1,14 @@
 <template>
     <div>
-        <input :type="fieldData.type" :name="fieldData.name" :placeholder="fieldData.placeholder">
+        <div>
+            Type: {{ fieldData.type }} 
+        </div>
+        <div>
+            Name: {{ fieldData.name }} 
+        </div>
+        <div>
+            Placeholder: {{ fieldData.placeholder }}
+        </div>
     </div>
 </template>
 

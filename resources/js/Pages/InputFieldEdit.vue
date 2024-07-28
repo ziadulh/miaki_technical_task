@@ -112,8 +112,8 @@ export default {
             if (validateForm()) {
                 axios.post('/input-field/'+props.field.id , formData)
                     .then((res) => {
-                        emit('update:inputs', res.data.inputs);
                         toastr.success(res.data.msg, 'Success')
+                        emit('update:inputs', res.data.inputs);
                     })
                     .catch(error => {
                         toastr.error('Oops! Error', 'Error')

@@ -54,7 +54,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="form in forms">
+                            <tr v-for="form in all_forms">
                                 <td scope="row">{{ form.title }}</td>
                                 <td>{{ form.method }}</td>
                                 <td>{{ form.action }}</td>
@@ -94,7 +94,7 @@ export interface initData {
     fields: Array<Object>,
     droppedFields: Array<Object>,
     draggedField: Object,
-    dragSource: String|null,
+    dragSource: String | null,
     dragStartIndex: Number | null,
     dragIndex: Number | null,
     formData: {
@@ -103,6 +103,13 @@ export interface initData {
         action: String,
         fields: Array<Object> | String
     }
+}
+
+export interface FormErrors {
+    title?: string;
+    method?: string;
+    action?: String,
+    fields?: String
 }
 
 export default defineComponent({
@@ -132,6 +139,8 @@ export default defineComponent({
             }
         });
 
+        const all_forms = ref(props.forms);
+
         let temp_arr = [];
         props.inputs.forEach(el => {
             temp_arr.push({
@@ -144,6 +153,8 @@ export default defineComponent({
             });
         });
         initData.fields = temp_arr;
+
+        const errors = reactive<FormErrors>({});
 
         const dragStart = (field: Object, source: String, index: Number) => {
             initData.draggedField = field;
@@ -204,6 +215,7 @@ export default defineComponent({
                 axios.post('/form-builder', initData.formData)
                     .then((res) => {
                         toastr.success(res.data.msg, 'Success')
+                        all_forms.value = res.data.forms;
                     })
                     .catch(error => {
                         toastr.error('Oops! Error', 'Error')
@@ -212,18 +224,52 @@ export default defineComponent({
             }
         };
         const checkInput = () => {
-            var flag = true;
-            return flag;
+            let isValid = true;
+            errors.title = initData.formData.title ? '' : 'Title is required';
+            errors.method = initData.formData.method ? '' : 'Method is required';
+            errors.action = initData.formData.action ? '' : 'Action is required';
+            errors.fields = initData.droppedFields.length <= 0 ? '' : 'Field is required';
+
+            if (!initData.formData.title) {
+                isValid = false;
+                toastr.error(errors.title, 'Error')
+            }
+            if (!initData.formData.method) {
+                isValid = false;
+                toastr.error(errors.method, 'Error')
+            }
+            if (!initData.formData.action) {
+                isValid = false;
+                toastr.error(errors.action, 'Error')
+            }
+            console.log(initData.droppedFields.length);
+
+            if (initData.droppedFields.length <= 0) {
+                isValid = false;
+                toastr.error('Add at least one filed', 'Error')
+            }
+            return isValid;
         };
 
         const DeleteForm = (id: Number) => {
             if (confirm('Are you sure')) {
-                Inertia.post('/form-builder/' + id + '/destroy');
+                axios.post('/form-builder/' + id + '/destroy')
+                    .then((res) => {
+                        toastr.success(res.data.msg, 'Success')
+                        all_forms.value = res.data.forms;
+                        console.log(res.data.forms);
+                        
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/form-builder/' + id + '/destroy');
             }
         };
 
         return {
             initData,
+            all_forms,
             dragStart,
             dropInRightPanel,
             dropInLeftPanel,

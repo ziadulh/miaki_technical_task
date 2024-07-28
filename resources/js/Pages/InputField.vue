@@ -65,7 +65,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="input in inputs">
+                            <tr v-for="input in all_inputs">
                                 <td scope="row">{{ input.type }}</td>
                                 <td>{{ input.name }}</td>
                                 <td>{{ input.label }}</td>
@@ -131,6 +131,8 @@ export default {
         });
         const errors = reactive<FormErrors>({});
 
+        const all_inputs = ref(props.inputs);
+
         const validateForm = (): boolean => {
             let isValid = true;
             errors.name = formData.name ? '' : 'Name is required';
@@ -152,8 +154,8 @@ export default {
             if (validateForm()) {
                 axios.post('/input-field', formData)
                     .then((res) => {
-                        emit('update:inputs', res.data.inputs);
                         toastr.success(res.data.msg, 'Success')
+                        all_inputs.value = res.data.inputs;
                     })
                     .catch(error => {
                         toastr.error('Oops! Error', 'Error')
@@ -166,8 +168,8 @@ export default {
             if (confirm('Are you sure!')) {
                 axios.delete(`/input-field/${id}`)
                     .then((res) => {
-                        emit('update:inputs', res.data.inputs);
                         toastr.success(res.data.msg, 'Success')
+                        all_inputs.value = res.data.inputs;
                     })
                     .catch(error => {
                         toastr.error('Oops! Error', 'Error')
@@ -178,6 +180,7 @@ export default {
 
         return {
             showList,
+            all_inputs,
             formData,
             errors,
             addNewField,
