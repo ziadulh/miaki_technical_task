@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('label', 50);
             $table->string('placeholder', 50)->nullable();
             $table->boolean('required')->default(true);
-            $table->text('options');
+            $table->text('options')->nullable();
             $table->timestamps();
         });
     }
