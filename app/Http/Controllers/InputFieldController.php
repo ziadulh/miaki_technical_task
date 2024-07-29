@@ -32,6 +32,7 @@ class InputFieldController extends Controller
         $field->label = $req->label;
         $field->placeholder = $req->placeholder;
         $field->required = $req->required;
+        $field->options = $req->options;
         $field->save();
 
         $inputs = InputField::get();
@@ -52,6 +53,7 @@ class InputFieldController extends Controller
         $field->label = $req->label;
         $field->placeholder = $req->placeholder;
         $field->required = $req->required;
+        $field->options = $req->options;
         $field->save();
 
         $inputs = InputField::get();

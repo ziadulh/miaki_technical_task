@@ -18,13 +18,18 @@
                             <span class="input-group-text" id="inputGroup-sizing-sm">Type</span>
                             <select class="form-select" id="inputGroupSelect02" v-model="formData.type">
                                 <option value="text">Text</option>
-                                <option value="email">Text</option>
-                                <option value="password">Text</option>
+                                <option value="email">Email</option>
+                                <option value="password">Password</option>
                                 <option value="select">Select</option>
                                 <option value="checkbox">CheckBox</option>
                                 <option value="radio">Radio</option>
                                 <option value="textarea">TextArea</option>
                             </select>
+                        </div>
+                        <div v-if="formData.type == 'select'" class="input-group input-group-sm mb-3">
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Enter Options <sub> (option must seperate with comma)</sub></span>
+                            <textarea class="form-control" aria-label="Sizing example input"
+                                aria-describedby="inputGroup-sizing-sm" v-model="formData.options"></textarea>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Name</span>
@@ -104,6 +109,7 @@ export interface FormData {
     label: string | null;
     placeholder: string | null;
     required: string;
+    options: String|null
 }
 
 export interface FormErrors {
@@ -128,6 +134,7 @@ export default {
             label: null,
             placeholder: null,
             required: '1',
+            options: null,
         });
         const errors = reactive<FormErrors>({});
 
