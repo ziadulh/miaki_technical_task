@@ -101,7 +101,8 @@ export interface initData {
         title: String,
         method: String,
         action: String,
-        fields: Array<Object> | String
+        fields: Array<Object> | String,
+        options: string|null
     }
 }
 
@@ -135,8 +136,9 @@ export default defineComponent({
                 title: '',
                 method: '',
                 action: '',
-                fields: []
-            }
+                fields: [],
+                options: null
+            },
         });
 
         const all_forms = ref(props.forms);
@@ -149,7 +151,8 @@ export default defineComponent({
                 type: el.type,
                 label: el.label,
                 placeholder: el.placeholder,
-                required: el.required
+                required: el.required,
+                options: el.options
             });
         });
         initData.fields = temp_arr;
@@ -283,23 +286,23 @@ export default defineComponent({
             DeleteForm
         };
     },
-    data() {
-        return {
-            showList: true,
-            fields: [],
-            droppedFields: [],
-            draggedField: null,
-            dragSource: null,
-            dragStartIndex: null,
-            dragIndex: null,
-            formData: {
-                title: null,
-                method: null,
-                action: null,
-                fields: []
-            }
-        }
-    }
+    // data() {
+    //     return {
+    //         showList: true,
+    //         fields: [],
+    //         droppedFields: [],
+    //         draggedField: null,
+    //         dragSource: null,
+    //         dragStartIndex: null,
+    //         dragIndex: null,
+    //         formData: {
+    //             title: null,
+    //             method: null,
+    //             action: null,
+    //             fields: []
+    //         }
+    //     }
+    // }
 });
 </script>
 

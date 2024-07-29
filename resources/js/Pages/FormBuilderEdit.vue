@@ -90,7 +90,8 @@ export interface initData {
         title: String,
         method: String,
         action: String,
-        fields: Array<Object> | String
+        fields: Array<Object> | String,
+        options: string | null
     }
 }
 
@@ -124,7 +125,8 @@ export default {
                 title: '',
                 method: '',
                 action: '',
-                fields: []
+                fields: [],
+                options: null
             }
         });
 
@@ -140,7 +142,8 @@ export default {
                         type: el.type,
                         label: el.label,
                         placeholder: el.placeholder,
-                        required: el.required
+                        required: el.required,
+                        options: el.options
                     });
                 }
             })
@@ -183,7 +186,8 @@ export default {
             title: props.form.title,
             method: props.form.method,
             action: props.form.action,
-            fields: props.droppedFields
+            fields: props.droppedFields,
+            options: props.options
         }
 
         const dragStart = (field: Object, source: String, index: Number) => {

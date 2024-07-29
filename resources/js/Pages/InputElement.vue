@@ -25,7 +25,7 @@
                     aria-label="Checkbox for following text input">
             </div>
         </div>
-        <div v-if="inputElement.type == 'select'" class="form-floating">
+        <div v-if="inputElement.type == 'select'" class="form-floating mb-3">
             <select class="form-select" id="floatingSelect" aria-label="Floating label select example">
                 <option v-for="item in (inputElement.options).split(',')" :value="item">{{item}}</option>
             </select>
