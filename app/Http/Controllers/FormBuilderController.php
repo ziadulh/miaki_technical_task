@@ -37,9 +37,9 @@ class FormBuilderController extends Controller
     }
 
     function show($id) {
-        $inputs = InputField::get();
+        // $inputs = InputField::get();
         $form = FormBuilder::findOrFail($id);
-        return Inertia::render('FormBuilderEdit', ['inputs' => $inputs, 'form' => $form]);
+        return Inertia::render('FormBuilderEdit', ['inputs' => ['inputs' => InputField::get(), 'json_field' => InputFieldJson::get()], 'form' => $form]);
     }
 
     function update(Request $req, $id) {

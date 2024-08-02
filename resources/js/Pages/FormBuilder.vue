@@ -156,7 +156,9 @@ export default defineComponent({
             });
         });
         (props.inputs['json_field']).forEach(el => {
-            temp_arr.push(JSON.parse(el.json_data));
+            var js_temp_data = JSON.parse(el.json_data);
+            js_temp_data.json_id = el.id
+            temp_arr.push(js_temp_data);
         });
         initData.fields = temp_arr;
 

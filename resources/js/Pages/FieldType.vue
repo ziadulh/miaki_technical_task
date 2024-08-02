@@ -1,10 +1,13 @@
 <template>
     <div>
         <div>
-            Type: {{ fieldData.type }} 
+            Label: {{ fieldData.label }} 
         </div>
         <div>
             Name: {{ fieldData.name }} 
+        </div>
+        <div>
+            Type: {{ fieldData.type }} 
         </div>
         <div>
             Placeholder: {{ fieldData.placeholder }}

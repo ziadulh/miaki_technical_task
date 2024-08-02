@@ -133,9 +133,13 @@ export default {
         var left_array = [];
         var right_array = [];
 
+        console.log(props.form.fields);
+        
+
         (JSON.parse(props.form.fields)).forEach(el => {
-            props.inputs.forEach(iel => {
-                if (el.id == iel.id) {
+
+            props.inputs['inputs'].forEach(iel => {
+                if (el.hasOwnProperty('id') && el.id == iel.id) {
                     right_array.push({
                         id: el.id,
                         name: el.name,
@@ -145,6 +149,12 @@ export default {
                         required: el.required,
                         options: el.options
                     });
+                }
+            })
+
+            props.inputs['json_field'].forEach(iel => {
+                if(el.json_id == iel.id){
+                    right_array.push(el);
                 }
             })
         });
@@ -169,12 +179,12 @@ export default {
             const idSetB = new Set(arrayB.map(obj => obj.id));
 
             // Filter array A to keep objects whose IDs are not in the set
-            const newArray = arrayA.filter(obj => !idSetB.has(obj.id));
+            const newArray = arrayA.filter(obj => !(idSetB.has(obj.id) || idSetB.has(obj.json_id)) );
 
             return newArray;
         }
 
-        left_array = removeObjectsById(props.inputs, (JSON.parse(props.form.fields)));
+        left_array = removeObjectsById(props.inputs['inputs'], (JSON.parse(props.form.fields)));
 
 
         const errors = reactive<FormErrors>({});
