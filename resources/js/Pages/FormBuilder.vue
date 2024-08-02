@@ -122,8 +122,8 @@ export default defineComponent({
         inputs: Array,
         forms: Array
     },
-    setup(props) {
-
+    setup(props) { console.log(props.inputs);
+    
         const initData = reactive<initData>({
             showList: true,
             fields: [],
@@ -144,7 +144,7 @@ export default defineComponent({
         const all_forms = ref(props.forms);
 
         let temp_arr = [];
-        props.inputs.forEach(el => {
+        (props.inputs['inputs']).forEach(el => {
             temp_arr.push({
                 id: el.id,
                 name: el.name,
@@ -154,6 +154,9 @@ export default defineComponent({
                 required: el.required,
                 options: el.options
             });
+        });
+        (props.inputs['json_field']).forEach(el => {
+            temp_arr.push(JSON.parse(el.json_data));
         });
         initData.fields = temp_arr;
 

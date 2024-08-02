@@ -4,6 +4,11 @@
         <AppLayout>
             <template v-slot:main_content>
                 <div class="row">
+
+                    <div>
+                        <button class="float-end m-2 btn btn-primary" @click="toggleJson()">Toggle</button>
+                    </div>
+
                     <div v-if="showList">
                         <button class="float-end m-2 btn btn-primary" @click="addNewField()">List</button>
                     </div>
@@ -13,7 +18,7 @@
                 </div>
                 <div class="row">
                     <!-- <form action="/input-field" method="post" v-if="showList" @submit.prevent="submit"> -->
-                    <form v-if="showList" @submit.prevent="submit">
+                    <form v-if="showList && !tempData.isJson" @submit.prevent="submit">
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Type</span>
                             <select class="form-select" id="inputGroupSelect02" v-model="formData.type">
@@ -27,7 +32,8 @@
                             </select>
                         </div>
                         <div v-if="formData.type == 'select'" class="input-group input-group-sm mb-3">
-                            <span class="input-group-text" id="inputGroup-sizing-sm">Enter Options <sub> (option must seperate with comma)</sub></span>
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Enter Options <sub> (option must
+                                    seperate with comma)</sub></span>
                             <textarea class="form-control" aria-label="Sizing example input"
                                 aria-describedby="inputGroup-sizing-sm" v-model="formData.options"></textarea>
                         </div>
@@ -58,9 +64,20 @@
                         </div>
                         <div><button type="submit" class="btn btn-primary float-end">Submit</button></div>
                     </form>
+                    <form v-if="showList && tempData.isJson" @submit.prevent="submitJson">
+                        <div class="input-group input-group-sm mb-3">
+                            <label for="">Enter Data</label>
+                        </div>
+                        <div class="input-group input-group-sm mb-3">
+                            <textarea class="form-control" aria-label="Sizing example input"
+                                aria-describedby="inputGroup-sizing-sm" v-model="tempData.jsonData"></textarea>
+                        </div>
+                        <div><button type="submit" class="btn btn-primary float-end">Submit</button></div>
+                    </form>
                     <table class="table table-sm" v-if="!showList">
                         <thead>
                             <tr>
+                                <th scope="col">Field</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Name</th>
                                 <th scope="col">Label</th>
@@ -71,14 +88,27 @@
                         </thead>
                         <tbody>
                             <tr v-for="input in all_inputs">
+                                <td>Input</td>
                                 <td scope="row">{{ input.type }}</td>
                                 <td>{{ input.name }}</td>
                                 <td>{{ input.label }}</td>
                                 <td>{{ input.placeholder }}</td>
                                 <td>{{ input.required ? 'true' : 'false' }}</td>
                                 <td>
-                                    <Link :href="'/input-field/' + input.id" class="btn btn-info">Edit</Link>
-                                    <button class="btn btn-danger mx-2" @click="deleteField(input.id)">Delete</button>
+                                    <Link :href="'/input-field/input/' + input.id" class="btn btn-info">Edit</Link>
+                                    <button class="btn btn-danger mx-2" @click="deleteField('input', input.id)">Delete</button>
+                                </td>
+                            </tr>
+                            <tr  v-for="json_inputs in all_json_inputs">
+                                <td>Json</td>
+                                <td scope="row">{{ JSON.parse(json_inputs.json_data).name }}</td>
+                                <td>{{ JSON.parse(json_inputs.json_data).name }}</td>
+                                <td>{{ JSON.parse(json_inputs.json_data).label }}</td>
+                                <td>{{ JSON.parse(json_inputs.json_data).placeholder }}</td>
+                                <td>{{ JSON.parse(json_inputs.json_data).required ? 'true' : 'false' }}</td>
+                                <td>
+                                    <Link :href="'/input-field/json_input/' + json_inputs.id" class="btn btn-info">Edit</Link>
+                                    <button class="btn btn-danger mx-2" @click="deleteField('json_input', json_inputs.id)">Delete</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -109,13 +139,18 @@ export interface FormData {
     label: string | null;
     placeholder: string | null;
     required: string;
-    options: String|null
+    options: String | null
 }
 
 export interface FormErrors {
     name?: string;
     label?: string;
     placeholder?: string;
+}
+
+export interface TempData {
+    isJson: boolean,
+    jsonData: string
 }
 
 export default {
@@ -125,6 +160,7 @@ export default {
     },
     props: {
         inputs: Array,
+        json_inputs: Array
     },
     setup(props, { emit }) {
         const showList = ref(true);
@@ -136,12 +172,25 @@ export default {
             required: '1',
             options: null,
         });
+
+        const tempData = reactive<TempData>({
+            isJson: false,
+            jsonData: ''
+        });
+
         const errors = reactive<FormErrors>({});
 
         const all_inputs = ref(props.inputs);
+        const all_json_inputs = ref(props.json_inputs);
 
         const validateForm = (): boolean => {
+            
             let isValid = true;
+
+            if (isValidJson(tempData.jsonData) && Object.keys(JSON.parse(tempData.jsonData)).length != 0) {
+                return isValid;
+            }
+
             errors.name = formData.name ? '' : 'Name is required';
             errors.label = formData.label ? '' : 'Label is required';
             errors.placeholder = formData.placeholder ? '' : 'Placeholder is required';
@@ -171,9 +220,27 @@ export default {
             }
         };
 
-        const deleteField = (id: number) => {
+        const submitJson = () => {
+            if (validateForm()) {
+                axios.post('/input-field', tempData)
+                    .then((res) => {
+                        toastr.success(res.data.msg, 'Success')
+                        all_inputs.value = res.data.inputs;
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/input-field', formData);
+            }
+        };
+
+        const toggleJson = () => {
+            tempData.isJson = !tempData.isJson;
+        };
+
+        const deleteField = (type: string, id: number) => {
             if (confirm('Are you sure!')) {
-                axios.delete(`/input-field/${id}`)
+                axios.delete(`/input-field/${type}/${id}`)
                     .then((res) => {
                         toastr.success(res.data.msg, 'Success')
                         all_inputs.value = res.data.inputs;
@@ -185,7 +252,19 @@ export default {
             }
         };
 
+        const  isValidJson = (str: string) => {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
         return {
+            all_json_inputs,
+            tempData,
+            submitJson,
             showList,
             all_inputs,
             formData,
@@ -193,6 +272,7 @@ export default {
             addNewField,
             submit,
             deleteField,
+            toggleJson
         };
     },
     // data() {

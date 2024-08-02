@@ -4,7 +4,12 @@
         <AppLayout>
             <template v-slot:main_content>
                 <div class="row">
-                    <form v-if="showList" @submit.prevent="submit">
+                    <div>
+                        <button class="float-end m-2 btn btn-primary" @click="toggleJson()">Toggle</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <form v-if="showList && !tempData.isJson" @submit.prevent="submit">
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Type</span>
                             <select class="form-select" id="inputGroupSelect02" v-model="formData.type">
@@ -18,7 +23,8 @@
                             </select>
                         </div>
                         <div v-if="formData.type == 'select'" class="input-group input-group-sm mb-3">
-                            <span class="input-group-text" id="inputGroup-sizing-sm">Enter Options <sub> (option must seperate with comma)</sub></span>
+                            <span class="input-group-text" id="inputGroup-sizing-sm">Enter Options <sub> (option must
+                                    seperate with comma)</sub></span>
                             <textarea class="form-control" aria-label="Sizing example input"
                                 aria-describedby="inputGroup-sizing-sm" v-model="formData.options"></textarea>
                         </div>
@@ -26,19 +32,19 @@
                             <span class="input-group-text" id="inputGroup-sizing-sm">Name</span>
                             <input v-model="formData.name" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
-                                <span class="text-danger">{{ errors.name }}</span>
+                            <span class="text-danger">{{ errors.name }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Label</span>
                             <input v-model="formData.label" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
-                                <span class="text-danger">{{ errors.label }}</span>
+                            <span class="text-danger">{{ errors.label }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Placeholder</span>
                             <input v-model="formData.placeholder" type="text" class="form-control"
                                 aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
-                                <span class="text-danger">{{ errors.placeholder }}</span>
+                            <span class="text-danger">{{ errors.placeholder }}</span>
                         </div>
                         <div class="input-group input-group-sm mb-3">
                             <span class="input-group-text" id="inputGroup-sizing-sm">Required</span>
@@ -46,6 +52,16 @@
                                 <option value="1">True</option>
                                 <option value="0">False</option>
                             </select>
+                        </div>
+                        <div><button type="submit" class="btn btn-primary float-end">Submit</button></div>
+                    </form>
+                    <form v-if="showList && tempData.isJson" @submit.prevent="submitJson">
+                        <div class="input-group input-group-sm mb-3">
+                            <label for="">Enter Data</label>
+                        </div>
+                        <div class="input-group input-group-sm mb-3">
+                            <textarea class="form-control" aria-label="Sizing example input"
+                                aria-describedby="inputGroup-sizing-sm" v-model="tempData.jsonData"></textarea>
                         </div>
                         <div><button type="submit" class="btn btn-primary float-end">Submit</button></div>
                     </form>
@@ -74,7 +90,7 @@ export interface FormData {
     label: string | null;
     placeholder: string | null;
     required: string;
-    options: String|null
+    options: String | null
 }
 
 export interface FormErrors {
@@ -83,13 +99,19 @@ export interface FormErrors {
     placeholder?: string;
 }
 
+export interface TempData {
+    isJson: boolean,
+    jsonData: string
+}
+
 export default {
     name: 'InputFieldEdit',
     components: {
         AppLayout,
     },
     props: {
-        field: Object
+        field: Object,
+        type: String
     },
     setup(props, { emit }) {
         const showList = ref(true);
@@ -101,10 +123,21 @@ export default {
             required: props.field.required,
             options: props.field.options,
         });
+
+        const tempData = reactive<TempData>({
+            isJson: false,
+            jsonData: props.field.json_data
+        });
+
         const errors = reactive<FormErrors>({});
 
         const validateForm = (): boolean => {
             let isValid = true;
+
+            if (isValidJson(tempData.jsonData) && Object.keys(JSON.parse(tempData.jsonData)).length != 0) {
+                return isValid;
+            }
+
             errors.name = formData.name ? '' : 'Name is required';
             errors.label = formData.label ? '' : 'Label is required';
             errors.placeholder = formData.placeholder ? '' : 'Placeholder is required';
@@ -118,7 +151,7 @@ export default {
 
         const submit = () => {
             if (validateForm()) {
-                axios.post('/input-field/'+props.field.id , formData)
+                axios.post('/input-field/input/' + props.field.id, formData)
                     .then((res) => {
                         toastr.success(res.data.msg, 'Success')
                         emit('update:inputs', res.data.inputs);
@@ -130,11 +163,41 @@ export default {
             }
         };
 
+        const submitJson = () => {
+            if (validateForm()) {
+                axios.post('/input-field/json_input/' + props.field.id, tempData)
+                    .then((res) => {
+                        toastr.success(res.data.msg, 'Success')
+                        // all_inputs.value = res.data.inputs;
+                    })
+                    .catch(error => {
+                        toastr.error('Oops! Error', 'Error')
+                    });
+                // Inertia.post('/input-field', formData);
+            }
+        }
+
+        const toggleJson = () => {
+            tempData.isJson = !tempData.isJson;
+        };
+
+        const isValidJson = (str: string) => {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
         return {
             showList,
             formData,
             errors,
             submit,
+            submitJson,
+            tempData,
+            toggleJson
         };
     },
     // data() {

@@ -13,9 +13,9 @@ Route::group(['middleware' => ['auth']], function () {
     })->name('home');
     
     Route::get('/input-field', [InputFieldController::class, 'index'])->name('field.index');
-    Route::get('/input-field/{id}', [InputFieldController::class, 'show'])->name('field.show');
-    Route::post('/input-field/{id}', [InputFieldController::class, 'update'])->name('field.update');
-    Route::delete('/input-field/{id}', [InputFieldController::class, 'destroy'])->name('field.destroy');
+    Route::get('/input-field/{type}/{id}', [InputFieldController::class, 'show'])->name('field.show');
+    Route::post('/input-field/{type}/{id}', [InputFieldController::class, 'update'])->name('field.update');
+    Route::delete('/input-field/{type}/{id}', [InputFieldController::class, 'destroy'])->name('field.destroy');
     Route::post('/input-field', [InputFieldController::class, 'store']);
     
     Route::get('/form-builder', [FormBuilderController::class, 'index'])->name('form_builder.list');

@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\FormBuilder;
 use App\Models\InputField;
+use App\Models\InputFieldJson;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class FormBuilderController extends Controller
 {
     function index() {
-        $inputs = InputField::get();
         $forms = FormBuilder::get();
-        return Inertia::render('FormBuilder', ['inputs' => $inputs, 'forms' => $forms]);
+        return Inertia::render('FormBuilder', ['inputs' => ['inputs' => InputField::get(), 'json_field' => InputFieldJson::get()], 'forms' => $forms]);
     }
 
     function store(Request $req) {
