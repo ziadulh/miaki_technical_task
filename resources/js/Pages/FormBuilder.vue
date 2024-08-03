@@ -37,7 +37,7 @@
                     </div>
                     <div class="right-panel" @dragover.prevent @drop="dropInRightPanel">
                         <div v-for="(field, index) in initData.droppedFields" :key="field.id" class="draggable-item"
-                            draggable="true" @dragstart="onDragStart(index)" @dragover.prevent
+                            draggable="true" @dragstart="onDragStart(field, 'right', index)" @dragover.prevent
                             @dragenter="onDragEnter(index)" @dragend="onDragEnd">
                             <FieldType :fieldData="field" />
                         </div>
@@ -167,7 +167,7 @@ export default defineComponent({
         const dragStart = (field: Object, source: String, index: Number) => {
             initData.draggedField = field;
             initData.dragSource = source;
-            initData.dragStartIndex = null;
+            initData.dragStartIndex = index;
 
         };
 
@@ -190,8 +190,11 @@ export default defineComponent({
             resetDrag();
         };
 
-        const onDragStart = (index: Number) => {
+        const onDragStart = (field: Object, source: String, index: Number) => {
             initData.dragIndex = index;
+            initData.draggedField = field;
+            initData.dragSource = source;
+            initData.dragStartIndex = index;
         };
 
         const onDragEnter = (index: Number) => {

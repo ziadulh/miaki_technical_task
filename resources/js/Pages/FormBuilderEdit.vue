@@ -29,7 +29,7 @@
                     </div>
                     <div class="right-panel" @dragover.prevent @drop="dropInRightPanel">
                         <div v-for="(field, index) in initData.droppedFields" :key="field.id" class="draggable-item"
-                            draggable="true" @dragstart="onDragStart(index)" @dragover.prevent
+                            draggable="true" @dragstart="onDragStart(field, 'right', index)" @dragover.prevent
                             @dragenter="onDragEnter(index)" @dragend="onDragEnd">
                             <FieldType :fieldData="field" />
                         </div>
@@ -133,8 +133,6 @@ export default {
         var left_array = [];
         var right_array = [];
 
-        console.log(props.form.fields);
-        
 
         (JSON.parse(props.form.fields)).forEach(el => {
 
@@ -175,14 +173,29 @@ export default {
         // });
 
         const removeObjectsById = (arrayA: Array<Object>, arrayB: Array<Object>) => {
+            
             // Create a set of IDs from array B for efficient lookup
             const idSetB = new Set(arrayB.map(obj => obj.id));
-
+            // const idSetB = new Set(arrayB.map(obj => obj.id));
             // Filter array A to keep objects whose IDs are not in the set
-            const newArray = arrayA.filter(obj => !(idSetB.has(obj.id) || idSetB.has(obj.json_id)) );
+            const newArray = arrayA.filter(obj => !idSetB.has(obj.id) );
 
             return newArray;
         }
+
+        // const removeObjectsByJsonId = (arrayA: Array<Object>, arrayB: Array<Object>) => {
+
+            
+        //     // Create a set of IDs from array B for efficient lookup
+        //     const idSetB = new Set(arrayB.map(obj => obj.json_id));
+            
+        //     // Filter array A to keep objects whose IDs are not in the set
+        //     const newArray = arrayA.filter(obj => !idSetB.has(obj.id) );
+
+        //     return newArray;
+        // }
+
+        // const temp_json_array = removeObjectsByJsonId(props.inputs['json_field'], (JSON.parse(props.form.fields)));
 
         left_array = removeObjectsById(props.inputs['inputs'], (JSON.parse(props.form.fields)));
 
@@ -203,7 +216,7 @@ export default {
         const dragStart = (field: Object, source: String, index: Number) => {
             initData.draggedField = field;
             initData.dragSource = source;
-            initData.dragStartIndex = null;
+            initData.dragStartIndex = index;
 
         };
 
@@ -226,8 +239,11 @@ export default {
             resetDrag();
         };
 
-        const onDragStart = (index: Number) => {
+        const onDragStart = (field: Object, source: String, index: Number) => {
             initData.dragIndex = index;
+            initData.draggedField = field;
+            initData.dragSource = source;
+            initData.dragStartIndex = index;
         };
 
         const onDragEnter = (index: Number) => {
@@ -285,7 +301,6 @@ export default {
                 isValid = false;
                 toastr.error(errors.action, 'Error')
             }
-            console.log(initData.droppedFields.length);
 
             if (initData.droppedFields.length <= 0) {
                 isValid = false;
