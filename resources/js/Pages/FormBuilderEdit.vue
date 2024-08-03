@@ -183,22 +183,45 @@ export default {
             return newArray;
         }
 
-        // const removeObjectsByJsonId = (arrayA: Array<Object>, arrayB: Array<Object>) => {
+        const removeObjectsByJsonId = (arrayA: Array<Object>, arrayB: Array<Object>) => {
 
+            var newArray = [];
+            var temp_json_array = [];
+            arrayB.forEach(el => {
+                if (el.json_id) {
+                    temp_json_array.push(el)
+                }
+            });
+
+            if(temp_json_array.length > 0){
+                // Create a set of IDs from array B for efficient lookup
+                const idSetB = new Set(temp_json_array.map(obj => obj.json_id));
+                
+                // Filter array A to keep objects whose IDs are not in the set
+                newArray = arrayA.filter(obj => !idSetB.has(obj.id) );
+
+            }else{
+                newArray = arrayA;
+            }
+
+            var final_array = [];
+
+            if (newArray.length > 0) {
+                newArray.forEach(element => {
+                    var json_parse_data = JSON.parse(element.json_data);
+                    json_parse_data.json_id = element.id;
+                    final_array.push(json_parse_data)
+                });
+            } 
             
-        //     // Create a set of IDs from array B for efficient lookup
-        //     const idSetB = new Set(arrayB.map(obj => obj.json_id));
-            
-        //     // Filter array A to keep objects whose IDs are not in the set
-        //     const newArray = arrayA.filter(obj => !idSetB.has(obj.id) );
+            return final_array;
+        }
 
-        //     return newArray;
-        // }
+        const temp_json_array = removeObjectsByJsonId(props.inputs['json_field'], (JSON.parse(props.form.fields)));
 
-        // const temp_json_array = removeObjectsByJsonId(props.inputs['json_field'], (JSON.parse(props.form.fields)));
+        var temp_left_array = removeObjectsById(props.inputs['inputs'], (JSON.parse(props.form.fields)));
 
-        left_array = removeObjectsById(props.inputs['inputs'], (JSON.parse(props.form.fields)));
-
+        left_array = temp_left_array.concat(temp_json_array)
 
         const errors = reactive<FormErrors>({});
 
